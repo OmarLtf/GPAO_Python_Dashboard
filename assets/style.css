@@ -1,0 +1,100 @@
+  @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,500&family=Poppins:wght@500&display=swap');
+
+*{
+    margin: 0;
+    font-family: 'Nunito Sans', sans-serif;
+    letter-spacing: 1.3px;
+}
+
+html, body {
+    overflow: hidden;
+    top: 0;
+    margin: 0px !important;
+    padding: 0px !important;
+    background-image: linear-gradient(to right bottom, #003e9b, #0a49ac, #1355bd, #1a61cf, #206de1);
+    color: white;
+    height: 100vh;
+}
+
+.titre{
+    font-size: 33px;
+    margin-left: 20px;
+    background-color: white;
+    background-image: linear-gradient(60deg, #ffefca, #ffedde, #fff1f3, #fff9ff, #ffffff);
+    background-size: 100%;
+    font-weight: bold;
+    /* Standard property */
+    background-clip: text;
+    /* Vendor-prefixed properties for compatibility */
+    -webkit-background-clip: text; /* For Webkit/Blink browsers (e.g., Chrome, Safari) */
+    -moz-background-clip: text; /* For Mozilla Firefox */
+    -o-background-clip: text; /* For Opera */    
+    -webkit-text-fill-color: transparent; 
+    -moz-text-fill-color: transparent;
+}
+.line{
+    border: 1px solid;
+    border-image: linear-gradient(to right, #ffefca, rgba(0, 0, 0, 0)) 1;
+    width: 60%; 
+    margin-left: 10px;
+}
+
+.card{
+margin-top: 30px!important;
+padding: 10px !important;
+background: rgba(255, 255, 255, 0.15);
+border-radius: 16px;
+box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+backdrop-filter: blur(3.1px);
+-webkit-backdrop-filter: blur(3.1px);
+border: 1px solid rgba(255, 255, 255, 0.3);
+width: 200px;
+height: 130px;
+display: flex; /* Utilisez un modèle de boîte flexible */
+align-items: center;
+flex-direction: column;
+justify-content: center;
+}
+
+.colonne{
+background: rgba(255, 255, 255, 0.1);
+border-radius: 16px;
+box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+backdrop-filter: blur(3.1px);
+-webkit-backdrop-filter: blur(3.1px);
+border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.colonne2{
+text-align: center;
+background: rgba(48, 79, 215, 0.15);
+border-radius: 16px;
+box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+backdrop-filter: blur(3.1px);
+-webkit-backdrop-filter: blur(3.1px);
+border: 1px solid rgba(255, 255, 255, 0.3);
+margin-top: 10px;
+}
+
+.copyr{
+    text-align: center !important;
+    color: #000;
+    margin: 30px;
+}
+
+.custom-div-class{
+    position:absolute;
+    right:15px ;
+    top: 10px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    align-items: center;
+
+}
+
+.clock{
+    color: #fff;    
+    padding: 4px;
+    margin-right: 5px;
+}
