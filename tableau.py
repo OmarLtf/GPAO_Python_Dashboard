@@ -86,44 +86,108 @@ def connect_to_database(host, username, password, database):
 # print(df)
 
 
+# def callback_on_database_change(host, username, password, database):
+#     conn = connect_to_database(host, username, password, database)
+#     cursor = conn.cursor()
+
+#     cursor.execute('SELECT * FROM traceability')
+#     time.sleep(1)
+#     rows = cursor.fetchall()
+
+#     num_columns = len(rows[0])
+#     column_names = ['id', 'of', 'emp', 'lot', 'prepare', 'rebut', 'comment', 'userName', 'table', 'matricule', 'date_doperation']
+#     df = pd.DataFrame(rows, columns=column_names)
+
+#     cursor.execute('SELECT `of`, `produit` FROM production')
+#     production_data = cursor.fetchall()
+
+#     production_columns = ['of', 'produit']
+#     df_production = pd.DataFrame(production_data, columns=production_columns)
+
+#     df = df.merge(df_production, on='of', how='left')
+
+#     cursor.close()
+#     conn.close()
+
+#     df['prepare'] = df['prepare'].astype(int)
+#     df['rebut'] = df['rebut'].astype(int)
+#     df['date_doperation'] = pd.to_datetime(df['date_doperation'], format='%d/%m/%Y', errors='coerce')
+
+#     return df
+
+# df = callback_on_database_change(host, username, password, database)
+
+# def update_dataframe_periodically(host, username, password, database, interval=1):
+#     global df
+#     while True:
+#         df = callback_on_database_change(host, username, password, database)
+#         print(df)  # or do any other operations with the updated DataFrame
+#         time.sleep(interval)
+
+
+def connect_to_database(host, username, password, database):
+    try:
+        conn = mysql.connector.connect(
+            host=host,
+            user=username,
+            password=password,
+            database=database
+        )
+        return conn
+    except mysql.connector.Error as err:
+        print(f"Error connecting to the database: {err}")
+        raise
+
 def callback_on_database_change(host, username, password, database):
-    conn = connect_to_database(host, username, password, database)
-    cursor = conn.cursor()
+    try:
+        conn = connect_to_database(host, username, password, database)
+        cursor = conn.cursor()
 
-    cursor.execute('SELECT * FROM traceability')
-    time.sleep(1)
-    rows = cursor.fetchall()
+        cursor.execute('SELECT * FROM traceability')
+        time.sleep(1)
+        rows = cursor.fetchall()
 
-    num_columns = len(rows[0])
-    column_names = ['id', 'of', 'emp', 'lot', 'prepare', 'rebut', 'comment', 'userName', 'table', 'matricule', 'date_doperation']
-    df = pd.DataFrame(rows, columns=column_names)
+        num_columns = len(rows[0])
+        column_names = ['id', 'of', 'emp', 'lot', 'prepare', 'rebut', 'comment', 'userName', 'table', 'matricule', 'date_doperation']
+        df = pd.DataFrame(rows, columns=column_names)
 
-    cursor.execute('SELECT `of`, `produit` FROM production')
-    production_data = cursor.fetchall()
+        cursor.execute('SELECT `of`, `produit` FROM production')
+        production_data = cursor.fetchall()
 
-    production_columns = ['of', 'produit']
-    df_production = pd.DataFrame(production_data, columns=production_columns)
+        production_columns = ['of', 'produit']
+        df_production = pd.DataFrame(production_data, columns=production_columns)
 
-    df = df.merge(df_production, on='of', how='left')
+        df = df.merge(df_production, on='of', how='left')
 
-    cursor.close()
-    conn.close()
+        df['prepare'] = df['prepare'].astype(int)
+        df['rebut'] = df['rebut'].astype(int)
+        df['date_doperation'] = pd.to_datetime(df['date_doperation'], format='%d/%m/%Y', errors='coerce')
 
-    df['prepare'] = df['prepare'].astype(int)
-    df['rebut'] = df['rebut'].astype(int)
-    df['date_doperation'] = pd.to_datetime(df['date_doperation'], format='%d/%m/%Y', errors='coerce')
+        return df
 
-    return df
+    except mysql.connector.Error as err:
+        print(f"Error executing query: {err}")
+        raise
+
+    finally:
+        cursor.close()
+        conn.close()
+
 
 df = callback_on_database_change(host, username, password, database)
-
 def update_dataframe_periodically(host, username, password, database, interval=1):
     global df
     while True:
-        df = callback_on_database_change(host, username, password, database)
-        print(df)  # or do any other operations with the updated DataFrame
-        time.sleep(interval)
+        try:
+            df = callback_on_database_change(host, username, password, database)
+            print("##########################################################################################################")
+            print(datetime.now())
+            print(df)  # or do any other operations with the updated DataFrame
 
+        except Exception as e:
+            print(f"Error updating DataFrame: {e}")
+
+        time.sleep(interval)
 
 # Start the update_dataframe_thread in the background
 update_dataframe_thread = threading.Thread(target=update_dataframe_periodically, args=(host, username, password, database))
