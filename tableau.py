@@ -95,9 +95,9 @@ def update_dataframe_periodically(host, username, password, database, interval=1
     while True:
         try:
             df = callback_on_database_change(host, username, password, database)
-            # print("##########################################################################################################")
-            # print(datetime.now())
-            # print(df)  # or do any other operations with the updated DataFrame
+            print("##########################################################################################################")
+            print(datetime.now())
+            print(df)  # or do any other operations with the updated DataFrame
 
         except Exception as e:
             print(f"Error updating DataFrame: {e}")
@@ -113,29 +113,29 @@ update_dataframe_thread.start()
 #************************************************************************************************************************************************************************************
 # Données initiales
 produit = "Alternateur"
-produit_change_time = 200  # Temps en secondes avant de changer de produit
 
 # Callback pour changer le produit toutes les 10 secondes
-@app.callback(Output('kpi-title', 'children'), Input('interval-component', 'n_intervals'))
+@app.callback(
+    Output('kpi-title', 'children'),       
+    Input('interval-component-3', 'n_intervals'))
+
 def update_kpi_title(n):
     global produit
     produit = update_produit(n)
+
     return f"KPI De Production Pm industries : {produit}"
 
 # Définition de la fonction update_produit
 def update_produit(n):
     global produit, produit_change_time
 
-    if produit_change_time <= 0:
-        if produit == "Alternateur":
+    if produit == "Alternateur":
             produit = "Démarreur"
-        elif produit == "Démarreur":
+    elif produit == "Démarreur":
             produit = "Etrier"
-        else:
-            produit = "Alternateur"
-        produit_change_time = 200  # Réinitialiser le compteur de temps
     else:
-        produit_change_time -= 1
+            produit = "Alternateur"
+
 
     return produit
 
@@ -145,12 +145,11 @@ def update_produit(n):
     Output('sous_ens-output', 'children'),
     Output('montage-output', 'children'),
     Output('rebut-output', 'children'),
-    Output('taux-output', 'children'),
-    Input('interval-component', 'n_intervals')
+    Output('taux-output', 'children'),  
+    Input('interval-component-3', 'n_intervals')
 )
 def update_outputs(n):
     global produit
-    produit = update_produit(n)
     today = date.today().strftime('%Y-%m-%d')
 
     table_demontage = 'TABLE DE DÉMONTAGE'
@@ -181,6 +180,8 @@ def update_outputs(n):
            f"{somme_quantite_preparee_montage}", \
            f"{somme_quantite_rebut}%", \
            f"{taux}%"
+
+
 
 def taux_de_rendement(produit, somme_quantite_preparee_montage):
     heure_debut = datetime(datetime.now().year, datetime.now().month, datetime.now().day, 8, 0, 0)
@@ -227,9 +228,9 @@ def taux_de_rendement(produit, somme_quantite_preparee_montage):
 )
 def update_alt(n) :
     global df
-    print("##########################################################################################################")
-    print(datetime.now())
-    print(df)  # or do any other operations with the updated DataFrame   
+    # print("##########################################################################################################")
+    # print(datetime.now())
+    # print(df)  # or do any other operations with the updated DataFrame   
     
     table_de_montage_alt = 'TABLE DE MONTAGE'  # Assurez-vous que le nom correspond exactement à votre jeu de données
     produit_alternateur = 'Alternateur'  # Assurez-vous que le nom du produit correspond exactement à votre jeu de données
@@ -432,28 +433,11 @@ def update_alt(n) :
 # Callback pour mettre à jour l'heure actuelle
 @app.callback(
     Output('heure_actuelle', 'children'),
-    Input('interval-component', 'n_intervals')
+    Input('interval-component-2', 'n_intervals')
 )
 def update_heure_actuelle(n):
     heure_actuelle2 = datetime.now().strftime('%H:%M:%S')  # Obtenez l'heure actuelle
     return f'{heure_actuelle2}'
-
-
-# Étiquettes en dessous du tableau de bord (verticalement à gauche)
-# etiquettes_col1 = html.Div(style={'display': 'flex', 'flex-direction': 'column', 'align-items': 'flex-start', 'width': '33.33%', 'margin-left': '20px', 'margin-top': '20px'}, children=[
-#     html.Div(style={'width': '50px'}),  # Ajouter un espace vide
-#     html.Div(style={'padding': '10px', 'width': '380px'},className='colonne2', children=[
-#         html.Div("Atelier Alternateurs", style={'font-size': '24px','font-weight': '600','letter-spacing':'3px', 'color': '#fff'}),
-#     ]),
-#     html.Br(),
-#     html.Div(f"1- Encours Brut : {encours_brut_alt}", style={ 'padding': '10px', 'border-radius': '15px', 'font-size': '24px', 'color': '#EDEBD7', 'width': '380px', 'margin-bottom':'10px'},className='colonne'),
-#     html.Div(f"2- Encours Net : {encours_net_alt}", style={ 'padding': '10px', 'border-radius': '15px', 'font-size': '24px', 'color': '#EDEBD7', 'width': '380px', 'margin-bottom':'10px'},className='colonne'),
-#     html.Div(f"3- Attente Sous-Ens : {att_sous_ens_alt}", style={ 'padding': '10px', 'border-radius': '15px', 'font-size': '24px', 'color': '#EDEBD7', 'width': '380px', 'margin-bottom':'10px'},className='colonne'),
-#     html.Div(f"4- Attente Montage : {att_montage_alt}", style={ 'padding': '10px', 'border-radius': '15px', 'font-size': '24px', 'color': '#EDEBD7', 'width': '380px', 'margin-bottom':'10px'},className='colonne'),
-#     html.Div(f"5- Bloquage : {somme_quantite_preparee_bloc_alt}", style={'padding': '10px','font-size': '24px', 'color': '#ffefca', 'width': '380px', 'margin-bottom':'10px'},className='colonne'),
-#     html.Div(f"6- Sous-Traitant : {somme_quantite_preparee_sous_traitant_alt}", style={'padding': '10px', 'font-size': '24px', 'width': '380px'},className='colonne'),
-# ])
-
 
 
 etiquettes_col1 = html.Div(style={'display': 'flex', 'flex-direction': 'column', 'align-items': 'flex-start', 'width': '33.33%', 'margin-left': '20px', 'margin-top': '20px'}, children=[
@@ -547,8 +531,8 @@ app.layout = html.Div([
     html.Div(id='rebut-output'),
     html.Div(id='taux-output'),
     dcc.Interval(
-        id='interval-component',
-        interval=0.1*2000,  # in milliseconds
+        id='interval-component-3',
+        interval=5*1000,  # in milliseconds
         n_intervals=0
     )
 ])
@@ -558,14 +542,23 @@ app.layout = html.Div([
     html.Div([
         dcc.Interval(
             id='interval-component',
-            interval=0.1 * 2000,  # en millisecondes
+            interval=2 * 1000,  # en millisecondes
+            n_intervals=0
+        ),
+        html.Div(id='output-container'),
+    ]),
+
+    html.Div([
+        dcc.Interval(
+            id='interval-component-3',
+            interval=10 * 1000,  # en millisecondes
             n_intervals=0
         ),
         html.Div(id='output-container'),
     ]),
 
     
-    dcc.Interval(id='interval-component-2', interval=0.1 * 2000, n_intervals=0),  # Utilisez un autre nom pour cet interval
+    dcc.Interval(id='interval-component-2', interval=0.5 * 1000, n_intervals=0),  # Utilisez un autre nom pour cet interval
     html.Div([
         html.Img(src='assets/clock.png', alt='image', className='clock'),
         html.H2("Heure Actuelle", id='heure_actuelle', className='date')
