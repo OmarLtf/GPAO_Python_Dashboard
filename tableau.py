@@ -58,21 +58,31 @@ def callback_on_database_change(host, username, password, database):
         conn = connect_to_database(host, username, password, database)
         cursor = conn.cursor()
 
-        cursor.execute('SELECT * FROM traceability')
+        conn_paco = connect_to_database(host, username, password, "paco")
+        cursor_paco = conn_paco.cursor()
+
+        cursor.execute('SELECT traceability.*, production.produit FROM traceability JOIN production ON traceability.of = production.of;')
         time.sleep(1)
         rows = cursor.fetchall()
 
-        num_columns = len(rows[0])
-        column_names = ['id', 'of', 'emp', 'lot', 'prepare', 'rebut', 'comment', 'userName', 'table', 'matricule', 'date_doperation']
+        column_names = ['id', 'of', 'emp', 'lot', 'prepare', 'rebut', 'comment', 'userName', 'table', 'matricule', 'date_doperation', 'produit']
         df = pd.DataFrame(rows, columns=column_names)
 
-        cursor.execute('SELECT `of`, `produit` FROM production')
-        production_data = cursor.fetchall()
+        cursor_paco.execute('SELECT Date(PACKINGinfo) , quantité FROM paco.containers WHERE date(PACKINGinfo) = curdate();')
+        time.sleep(1)
+        rows_paco = cursor_paco.fetchall()
 
-        production_columns = ['of', 'produit']
-        df_production = pd.DataFrame(production_data, columns=production_columns)
+        column_names_paco = ['PACKINGinfo', 'quantité']
+        df_paco = pd.DataFrame(rows_paco, columns=column_names_paco)
+        print(df_paco)
 
-        df = df.merge(df_production, on='of', how='left')
+        # cursor.execute('SELECT `of`, `produit` FROM production')
+        # production_data = cursor.fetchall()
+
+        # production_columns = ['of', 'produit']
+        # df_production = pd.DataFrame(production_data, columns=production_columns)
+
+        # df = df.merge(df_production, on='of', how='left')
 
         df['prepare'] = df['prepare'].astype(int)
         df['rebut'] = df['rebut'].astype(int)
@@ -554,7 +564,7 @@ app.layout = html.Div([
             interval=10 * 1000,  # en millisecondes
             n_intervals=0
         ),
-        html.Div(id='output-container'),
+        html.Div(id='output-container-2'),
     ]),
 
     
