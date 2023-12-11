@@ -68,6 +68,7 @@ def callback_on_database_change(host, username, password, database):
         column_names = ['id', 'of', 'emp', 'lot', 'prepare', 'rebut', 'comment', 'userName', 'table', 'matricule', 'date_doperation', 'produit']
         df = pd.DataFrame(rows, columns=column_names)
 
+# Select alternateur montage aujourd'hui
         cursor_paco.execute('SELECT Date(PACKINGinfo) , quantité FROM paco.containers WHERE date(PACKINGinfo) = curdate();')
         time.sleep(1)
         rows_paco = cursor_paco.fetchall()
@@ -77,6 +78,18 @@ def callback_on_database_change(host, username, password, database):
         # print("-----------------------------------------------Alternateurs------------------------------")
         # print(df_paco)
 
+
+# Select alternateur montage all
+        cursor_paco.execute('SELECT Date(PACKINGinfo) , quantité FROM paco.containers')
+        time.sleep(1)
+        rows_paco_all = cursor_paco.fetchall()
+
+        column_names_paco_all = ['PACKINGinfo', 'quantité']
+        df_paco_all = pd.DataFrame(rows_paco_all, columns=column_names_paco_all)
+
+
+
+# Select demarreur montage today
         cursor_paco.execute('SELECT Date(Packinginfo) , quantité FROM paco.demarreur WHERE date(Packinginfo) = curdate();')
         time.sleep(1)
         rows_paco_demarreur = cursor_paco.fetchall()
@@ -86,7 +99,15 @@ def callback_on_database_change(host, username, password, database):
         # print("-----------------------------------------------Demarreurs------------------------------")
         # print(df_paco_demarreur)
 
-        
+# Select demarreur montage all
+        cursor_paco.execute('SELECT Date(Packinginfo) , quantité FROM paco.demarreur')
+        time.sleep(1)
+        rows_paco_demarreur_all = cursor_paco.fetchall()
+
+        column_names_paco_demarreur_all = ['PACKINGinfo', 'quantité']
+        df_paco_demarreur_all = pd.DataFrame(rows_paco_demarreur_all, columns=column_names_paco_demarreur_all)
+
+
 
         # cursor.execute('SELECT `of`, `produit` FROM production')
         # production_data = cursor.fetchall()
@@ -100,7 +121,7 @@ def callback_on_database_change(host, username, password, database):
         df['rebut'] = df['rebut'].astype(int)
         df['date_doperation'] = pd.to_datetime(df['date_doperation'], format='%d/%m/%Y', errors='coerce')
 
-        return df, df_paco, df_paco_demarreur
+        return df, df_paco, df_paco_demarreur, df_paco_all, df_paco_demarreur_all
 
     except mysql.connector.Error as err:
         print(f"Error executing query: {err}")
@@ -111,7 +132,7 @@ def callback_on_database_change(host, username, password, database):
         conn.close()
 
 
-df, df_paco, df_paco_demarreur = callback_on_database_change(host, username, password, database)
+df, df_paco, df_paco_demarreur, df_paco_all, df_paco_demarreur_all = callback_on_database_change(host, username, password, database)
 
 
 # print("-----------------------------------------------Alternateurs------------------------------")
@@ -121,13 +142,17 @@ df, df_paco, df_paco_demarreur = callback_on_database_change(host, username, pas
 
 
 def update_dataframe_periodically(host, username, password, database, interval=1):
-    global df
+    global df, df_paco, df_paco_demarreur, df_paco_all, df_paco_demarreur_all
     while True:
         try:
-            df, df_paco, df_paco_demarreur = callback_on_database_change(host, username, password, database)
+            df, df_paco, df_paco_demarreur, df_paco_all, df_paco_demarreur_all = callback_on_database_change(host, username, password, database)
             print("##########################################################################################################")
             print(datetime.now())
             print(df)  # or do any other operations with the updated DataFrame
+            # print("-----------------------------------------------Alternateurs------------------------------")
+            # print(df_paco)
+            # print("-----------------------------------------------Demarreurs------------------------------")
+            # print(df_paco_demarreur)
 
         except Exception as e:
             print(f"Error updating DataFrame: {e}")
@@ -193,7 +218,14 @@ def update_outputs(n):
 
     somme_quantite_preparee_demontage = filtered_data_demontage['prepare'].sum()
     somme_quantite_preparee_sous_ens = filtered_data_sous_ens['prepare'].sum()
-    somme_quantite_preparee_montage = filtered_data_montage['prepare'].sum()
+
+    if produit == 'Alternateur':
+        somme_quantite_preparee_montage = df_paco['quantité'].sum()
+    elif produit == 'Démarreur':
+        somme_quantite_preparee_montage = df_paco_demarreur['quantité'].sum()
+    else : 
+        somme_quantite_preparee_montage = filtered_data_montage['prepare'].sum()
+
     somme_quantite_preparee_sous_ens_rebut = filtered_data_sous_ens['rebut'].sum()
     somme_quantite_preparee_montage_rebut = filtered_data_montage['rebut'].sum()
 
@@ -257,7 +289,7 @@ def taux_de_rendement(produit, somme_quantite_preparee_montage):
 
 )
 def update_alt(n) :
-    global df
+    global df, df_paco, df_paco_demarreur, df_paco_all, df_paco_demarreur_all
     # print("##########################################################################################################")
     # print(datetime.now())
     # print(df)  # or do any other operations with the updated DataFrame   
@@ -265,8 +297,9 @@ def update_alt(n) :
     table_de_montage_alt = 'TABLE DE MONTAGE'  # Assurez-vous que le nom correspond exactement à votre jeu de données
     produit_alternateur = 'Alternateur'  # Assurez-vous que le nom du produit correspond exactement à votre jeu de données
 
-    filtered_data_montage_alt = df[(df['table'] == table_de_montage_alt) & (df['produit'] == produit_alternateur)]
-    somme_quantite_preparee_montage_alt = filtered_data_montage_alt['prepare'].sum()
+    # filtered_data_montage_alt = df[(df['table'] == table_de_montage_alt) & (df['produit'] == produit_alternateur)]
+    # somme_quantite_preparee_montage_alt = filtered_data_montage_alt['prepare'].sum()
+    somme_quantite_preparee_montage_alt = df_paco_all['quantité'].sum()
 
     # Calculer la somme de la quantité préparée de démontage Alt
     table_de_demontage_alt = 'TABLE DE DÉMONTAGE'  # Assurez-vous que le nom correspond exactement à votre jeu de données
@@ -324,8 +357,9 @@ def update_alt(n) :
     table_de_montage_dem = 'TABLE DE MONTAGE'  # Assurez-vous que le nom correspond exactement à votre jeu de données
     produit_demarreur = 'Démarreur'  # Assurez-vous que le nom du produit correspond exactement à votre jeu de données
 
-    filtered_data_montage_dem = df[(df['table'] == table_de_montage_dem) & (df['produit'] == produit_demarreur)]
-    somme_quantite_preparee_montage_dem = filtered_data_montage_dem['prepare'].sum()
+    # filtered_data_montage_dem = df[(df['table'] == table_de_montage_dem) & (df['produit'] == produit_demarreur)]
+    # somme_quantite_preparee_montage_dem = filtered_data_montage_dem['prepare'].sum()
+    somme_quantite_preparee_montage_dem = df_paco_demarreur_all['quantité'].sum()
 
     # Calculer la somme de la quantité préparée de démontage dem
     table_de_demontage_dem = 'TABLE DE DÉMONTAGE'  # Assurez-vous que le nom correspond exactement à votre jeu de données
