@@ -58,27 +58,49 @@ def callback_on_database_change(host, username, password, database):
         conn = connect_to_database(host, username, password, database)
         cursor = conn.cursor()
 
-        cursor.execute('SELECT * FROM traceability')
+        conn_paco = connect_to_database(host, username, password, "paco")
+        cursor_paco = conn_paco.cursor()
+
+        cursor.execute('SELECT traceability.*, production.produit FROM traceability JOIN production ON traceability.of = production.of;')
         time.sleep(1)
         rows = cursor.fetchall()
 
-        num_columns = len(rows[0])
-        column_names = ['id', 'of', 'emp', 'lot', 'prepare', 'rebut', 'comment', 'userName', 'table', 'matricule', 'date_doperation']
+        column_names = ['id', 'of', 'emp', 'lot', 'prepare', 'rebut', 'comment', 'userName', 'table', 'matricule', 'date_doperation', 'produit']
         df = pd.DataFrame(rows, columns=column_names)
 
-        cursor.execute('SELECT `of`, `produit` FROM production')
-        production_data = cursor.fetchall()
+        cursor_paco.execute('SELECT Date(PACKINGinfo) , quantité FROM paco.containers WHERE date(PACKINGinfo) = curdate();')
+        time.sleep(1)
+        rows_paco = cursor_paco.fetchall()
 
-        production_columns = ['of', 'produit']
-        df_production = pd.DataFrame(production_data, columns=production_columns)
+        column_names_paco = ['PACKINGinfo', 'quantité']
+        df_paco = pd.DataFrame(rows_paco, columns=column_names_paco)
+        # print("-----------------------------------------------Alternateurs------------------------------")
+        # print(df_paco)
 
-        df = df.merge(df_production, on='of', how='left')
+        cursor_paco.execute('SELECT Date(Packinginfo) , quantité FROM paco.demarreur WHERE date(Packinginfo) = curdate();')
+        time.sleep(1)
+        rows_paco_demarreur = cursor_paco.fetchall()
+
+        column_names_paco_demarreur = ['PACKINGinfo', 'quantité']
+        df_paco_demarreur = pd.DataFrame(rows_paco_demarreur, columns=column_names_paco_demarreur)
+        # print("-----------------------------------------------Demarreurs------------------------------")
+        # print(df_paco_demarreur)
+
+        
+
+        # cursor.execute('SELECT `of`, `produit` FROM production')
+        # production_data = cursor.fetchall()
+
+        # production_columns = ['of', 'produit']
+        # df_production = pd.DataFrame(production_data, columns=production_columns)
+
+        # df = df.merge(df_production, on='of', how='left')
 
         df['prepare'] = df['prepare'].astype(int)
         df['rebut'] = df['rebut'].astype(int)
         df['date_doperation'] = pd.to_datetime(df['date_doperation'], format='%d/%m/%Y', errors='coerce')
 
-        return df
+        return df, df_paco, df_paco_demarreur
 
     except mysql.connector.Error as err:
         print(f"Error executing query: {err}")
@@ -89,12 +111,20 @@ def callback_on_database_change(host, username, password, database):
         conn.close()
 
 
-df = callback_on_database_change(host, username, password, database)
+df, df_paco, df_paco_demarreur = callback_on_database_change(host, username, password, database)
+
+
+# print("-----------------------------------------------Alternateurs------------------------------")
+# print(df_paco)
+# print("-----------------------------------------------Demarreurs------------------------------")
+# print(df_paco_demarreur)
+
+
 def update_dataframe_periodically(host, username, password, database, interval=1):
     global df
     while True:
         try:
-            df = callback_on_database_change(host, username, password, database)
+            df, df_paco, df_paco_demarreur = callback_on_database_change(host, username, password, database)
             print("##########################################################################################################")
             print(datetime.now())
             print(df)  # or do any other operations with the updated DataFrame
@@ -146,7 +176,7 @@ def update_produit(n):
     Output('montage-output', 'children'),
     Output('rebut-output', 'children'),
     Output('taux-output', 'children'),  
-    Input('interval-component-3', 'n_intervals')
+    Input('interval-component-2', 'n_intervals')
 )
 def update_outputs(n):
     global produit
@@ -532,7 +562,7 @@ app.layout = html.Div([
     html.Div(id='taux-output'),
     dcc.Interval(
         id='interval-component-3',
-        interval=5*1000,  # in milliseconds
+        interval=10*1000,  # in milliseconds
         n_intervals=0
     )
 ])
@@ -554,7 +584,7 @@ app.layout = html.Div([
             interval=10 * 1000,  # en millisecondes
             n_intervals=0
         ),
-        html.Div(id='output-container'),
+        html.Div(id='output-container-2'),
     ]),
 
     
