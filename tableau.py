@@ -251,14 +251,11 @@ def taux_de_rendement(produit, somme_quantite_preparee_montage):
     duree_totale_disponible = (heure_actuelle - heure_debut).total_seconds() / 60
     if somme_quantite_preparee_montage == 0 :
         taux = 0 
-    elif produit == "Alternateur":
-        nombre_total_unites = 180
-        taux = round((somme_quantite_preparee_montage) / ((nombre_total_unites / (60 * 8)) * duree_totale_disponible) * 100,1)
-    elif produit == "Demarreur":
-        nombre_total_unites = 180
+    elif produit == "Etrier":
+        nombre_total_unites = 150
         taux = round((somme_quantite_preparee_montage) / ((nombre_total_unites / (60 * 8)) * duree_totale_disponible) * 100,1)
     else:
-        nombre_total_unites = 150
+        nombre_total_unites = 180
         taux = round((somme_quantite_preparee_montage) / ((nombre_total_unites / (60 * 8)) * duree_totale_disponible) * 100,1)
 
     return taux
@@ -351,7 +348,7 @@ def update_alt(n) :
 
     #Calculer Att Montage Alt
 
-    att_montage_alt = somme_quantite_preparee_sous_ens_alt - somme_quantite_preparee_montage_alt-somme_quantite_preparee_montage_alt_rebut
+    att_montage_alt = somme_quantite_preparee_sous_ens_alt - somme_quantite_preparee_montage_alt-somme_quantite_preparee_montage_alt_rebut - somme_quantite_preparee_bloc_alt - somme_quantite_preparee_sous_traitant_alt
 
         # Calculer la somme de la quantité préparée de montage Dém
     table_de_montage_dem = 'TABLE DE MONTAGE'  # Assurez-vous que le nom correspond exactement à votre jeu de données
@@ -411,7 +408,7 @@ def update_alt(n) :
 
     #Calculer Att Montage dem
 
-    att_montage_dem = (somme_quantite_preparee_sous_ens_dem) - (somme_quantite_preparee_montage_dem)-(somme_quantite_preparee_montage_dem_rebut)
+    att_montage_dem = (somme_quantite_preparee_sous_ens_dem) - (somme_quantite_preparee_montage_dem)-(somme_quantite_preparee_montage_dem_rebut) - somme_quantite_preparee_bloc_dem - somme_quantite_preparee_sous_traitant_dem
 
         # Calculer la somme de la quantité préparée de montage Dém
     table_de_montage_ef = 'TABLE DE MONTAGE'  # Assurez-vous que le nom correspond exactement à votre jeu de données
@@ -470,7 +467,7 @@ def update_alt(n) :
 
     #Calculer Att Montage dem
 
-    att_montage_ef = (somme_quantite_preparee_sous_ens_ef)-(somme_quantite_preparee_montage_ef)-(somme_quantite_preparee_montage_ef_rebut)
+    att_montage_ef = (somme_quantite_preparee_sous_ens_ef)-(somme_quantite_preparee_montage_ef)-(somme_quantite_preparee_montage_ef_rebut) - somme_quantite_preparee_bloc_ef - somme_quantite_preparee_sous_traitant_ef
 
     return f"{encours_brut_alt}", \
            f"{encours_net_alt}", \
