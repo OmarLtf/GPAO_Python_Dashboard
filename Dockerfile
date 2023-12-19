@@ -7,15 +7,15 @@ WORKDIR /app
 # Copy the current directory contents into the container at /app
 COPY . /app
 
-# RUN pip install --upgrade pip
-# RUN pip install --upgrade setuptools
-
+# Set the timezone to Africa/Tunis
+ENV TZ=Africa/Tunis
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Make port 8050 available to the world outside this container
-EXPOSE 8050
+EXPOSE 9000
 
 # Define environment variable
 ENV NAME World
